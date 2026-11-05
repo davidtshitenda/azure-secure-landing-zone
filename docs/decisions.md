@@ -6,3 +6,40 @@
 - **Trade-off:** One extra resource to pay for and protect, which I locked against deletion.
 
 ![Blob versioning enabled](images/phase1-blob-versioning-enabled.png)
+
+## Phase 2: Hub and spoke network
+
+- **Decision:** Hub and spoke topology. `vnet-hub` holds Azure Bastion, and `vnet-prod` is the production spoke with `snet-web` and `snet-data`. The two are connected by VNet peering.
+- **Why:** The hub centralises access, and the spoke isolates workloads. More spokes can be added later without changing the hub.
+- **Alternative considered:** A single flat VNet. Rejected because every workload would share one network boundary and one set of rules.
+- **Trade-off:** More resources to manage. Peering is not transitive, so spokes can't talk to each other unless traffic is routed through the hub.
+
+![Hub peering connected](images/phase2-hub-peering-connected.png)
+
+![Spoke peering connected](images/phase2-spoke-peering-connected.png)
+
+![Hub subnet for Bastion](images/phase2-vnet-hub-bastion-subnet.png)
+
+### NSG design
+
+- **Decision:** One NSG per subnet, with default deny inbound. `web-nsg` on `snet-web` allows HTTP from the internet (a Standard load balancer passes client traffic through, so the NSG sees the original client IP) and allows management traffic only from the Bastion subnet.
+- **Why:** Least privilege at the subnet boundary, with no management ports exposed to the internet.
+- **Alternative considered:** Public IPs on the VMs with RDP or SSH restricted to my own IP. Rejected because it still exposes a management port to the internet.
+- **Trade-off:** Rules need maintaining, and a mistake can block legitimate traffic. Each rule has a clear name so it can be audited.
+- **Data tier:** `data-nsg` allows HTTPS (443) only from `snet-web`, with an explicit deny-all at priority 4096. Azure's default AllowVnetInBound rule would otherwise permit any traffic from inside the VNet or from the peered hub.
+- **Private endpoint policy:** Set to Network security groups on `snet-data`, so NSG rules apply to private endpoint traffic. The default (Disabled) ignores NSGs for private endpoints.
+- **Private subnet:** `snet-data` has default outbound access disabled, so nothing in the data tier can initiate connections to the internet.
+
+![web-nsg associated to snet-web](images/phase2-web-nsg-associated-to-snet-web.png)
+
+![Allow HTTP from internet](images/phase2-nsg-allow-http-from-internet.png)
+
+![Allow management from Bastion](images/phase2-nsg-allow-rdp-from-bastion.png)
+
+![data-nsg associated to snet-data](images/phase2-data-nsg-associated-to-snet-data.png)
+
+![Allow HTTPS from snet-web](images/phase2-data-nsg-allow-https-from-snet-web.png)
+
+![Deny all other inbound](images/phase2-data-nsg-deny-all-inbound.png)
+
+![snet-data NSG and private endpoint policy](images/phase2-snet-data-nsg-and-private-endpoint-policy.png)
