@@ -64,3 +64,23 @@
 ![Health probe](images/phase3-health-probe-on-port-80.png)
 
 ![Health probe status at 100%](images/phase3-lb-health-probe-100.png)
+
+## Phase 4: Storage with private endpoint
+
+- **Decision:** The storage account (`strgprod2026`) has public network access disabled and is reachable only through a blob private endpoint (`pe-snet-data`) in `snet-data`. The `privatelink.blob.core.windows.net` private DNS zone is linked to both VNets.
+- **Why:** Data is unreachable from the internet. Inside the network, the storage name resolves to a private IP (`10.1.1.4`) and traffic stays on the Azure backbone.
+- **Alternative considered:** A service endpoint with a firewall rule. Rejected because the storage account keeps a public endpoint and the traffic is not addressed privately.
+- **Trade-off:** The private endpoint and DNS zone add cost and moving parts. Without the private DNS zone and VNet links, the name would resolve to the public address and access would fail.
+- **Verification:** From `web-vm`, DNS resolves through the privatelink CNAME to a private address and TCP 443 succeeds. From my own computer, the name resolves to a public address and access is refused.
+
+![Private endpoint creation](images/phase4-private-endpoint-create.png)
+
+![Public network access disabled](images/phase4-storage-public-access-disabled.png)
+
+![Private DNS zone links](images/phase4-private-dns-zone-vnet-links.png)
+
+![VM resolves a private IP](images/phase4-vm-resolves-private-ip.png)
+
+![Outside resolves a public IP](images/phase4-outside-resolves-public-ip.png)
+
+![Outside access blocked](images/phase4-outside-access-blocked.png)
