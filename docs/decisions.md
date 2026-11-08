@@ -46,7 +46,21 @@
 
 ## Phase 3: Compute, Bastion and load balancer
 
-- **Decision:** A Windows web VM (`web-vm`) in `snet-web` with no public IP, behind a Standard public load balancer (`lbe-web-prod`). Administration is only through Azure Bastion.
+- **Decision:** A Windows Server web VM (`web-vm`) in `snet-web` with no public IP, behind a Standard public load balancer (`lbe-web-prod`). Administration is only through Azure Bastion.
 - **Why:** No public IP or open management port on the VM. The load balancer is the single public entry point and routes only to healthy instances.
 - **Alternative considered:** A public IP on the VM with RDP restricted to my own address. Rejected because it still exposes a management port to the internet.
-- **Trade-off:** A Standard load balancer and Bastion bill hourly. The load balancer works at layer 4 only, with no WAF or TLS termination, which is where Application Gateway fits at production scale.
+- **Trade-off:** A Standard load balancer and Bastion bill hourly. The load balancer works at layer 4 only, with no WAF or TLS termination, so traffic is plain HTTP in this lab. At production scale I'd use Application Gateway with a WAF and HTTPS.
+- **Provisioning:** IIS was installed with Run Command from `scripts/install-iis.ps1`, which needs no outbound internet access. Terraform will run the same script in Phase 8.
+- **Troubleshooting note:** The VM was redeployed once, and IIS had to be installed again. Scripting the install avoids that kind of drift.
+
+![IIS page via the load balancer public IP](images/phase3-iis-page-via-public-ip.png)
+
+![Custom IIS page on the VM](images/phase3-iis-custom-page-localhost.png)
+
+![Backend pool](images/phase3-lb-backend-pool.png)
+
+![Load balancing rule](images/phase3-lb-rule-http-80.png)
+
+![Health probe](images/phase3-health-probe-on-port-80.png)
+
+![Health probe status at 100%](images/phase3-lb-health-probe-100.png)
