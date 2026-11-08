@@ -43,3 +43,10 @@
 ![Deny all other inbound](images/phase2-data-nsg-deny-all-inbound.png)
 
 ![snet-data NSG and private endpoint policy](images/phase2-snet-data-nsg-and-private-endpoint-policy.png)
+
+## Phase 3: Compute, Bastion and load balancer
+
+- **Decision:** A Windows web VM (`web-vm`) in `snet-web` with no public IP, behind a Standard public load balancer (`lbe-web-prod`). Administration is only through Azure Bastion.
+- **Why:** No public IP or open management port on the VM. The load balancer is the single public entry point and routes only to healthy instances.
+- **Alternative considered:** A public IP on the VM with RDP restricted to my own address. Rejected because it still exposes a management port to the internet.
+- **Trade-off:** A Standard load balancer and Bastion bill hourly. The load balancer works at layer 4 only, with no WAF or TLS termination, which is where Application Gateway fits at production scale.
