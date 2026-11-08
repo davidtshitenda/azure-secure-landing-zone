@@ -72,6 +72,7 @@
 - **Alternative considered:** A service endpoint with a firewall rule. Rejected because the storage account keeps a public endpoint and the traffic is not addressed privately.
 - **Trade-off:** The private endpoint and DNS zone add cost and moving parts. Without the private DNS zone and VNet links, the name would resolve to the public address and access would fail.
 - **Verification:** From `web-vm`, DNS resolves through the privatelink CNAME to a private address and TCP 443 succeeds. From my own computer, the name resolves to a public address and access is refused.
+- **Hardening:** Anonymous blob access is disabled, secure transfer is required, and the minimum TLS version is 1.2. Shared key access is still enabled and will be disabled in Phase 5 once the managed identity works.
 
 ![Private endpoint creation](images/phase4-private-endpoint-create.png)
 
