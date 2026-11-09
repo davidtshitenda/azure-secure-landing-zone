@@ -8,7 +8,7 @@ A healthcare company needs an Azure environment that controls who has access, ke
 
 ## Architecture
 
-![Architecture diagram](docs/architecture.png)
+![Architecture diagram](docs/images/architecture.png)
 
 Visitors reach a public load balancer, which sends traffic to the web VM in the web subnet. The web VM talks to storage through a private endpoint in the data subnet. I manage the VM only through Azure Bastion, so no admin ports are open to the internet.
 
