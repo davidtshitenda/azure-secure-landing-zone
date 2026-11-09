@@ -85,3 +85,30 @@
 ![Outside resolves a public IP](images/phase4-outside-resolves-public-ip.png)
 
 ![Outside access blocked](images/phase4-outside-access-blocked.png)
+
+## Phase 5: Identity and access
+
+- **Decision:** Azure roles are assigned to security groups at resource group or resource scope. `sg-readers` has Reader, `sg-cloud-admins` has Contributor on `rg-prod` with no standing members, and the web VM's managed identity has Storage Blob Data Reader on the storage account.
+- **Why:** Groups make access easy to audit and change, narrow scopes limit the blast radius, and the managed identity removes keys and connection strings.
+- **Alternative considered:** Assigning roles to individual users and using storage account keys. Rejected because it doesn't scale and secrets can leak.
+- **Trade-off:** More groups and assignments to maintain. Without PIM, admin access is a standing assignment rather than an activation step.
+- **Managed identity test:** From `web-vm`, a token from the instance metadata service reads a blob over the private endpoint with no keys. With only Storage Blob Data Reader, reads succeed and writes return 403. Shared key access was then disabled, and reads still work, which shows nothing depends on secrets.
+- **Privileged access:** PIM requires Entra ID P2, which wasn't available in this tenant after the trial ended. Instead, `sg-cloud-admins` has no standing members and membership changes are visible in the Azure Activity log. At production scale I would make Contributor eligible through PIM, with MFA on activation, a justification, a short duration and approval for sensitive roles.
+- **MFA and legacy authentication:** The tenant is on Entra ID Free, so Conditional Access isn't available. Security defaults are enabled instead, which require MFA for administrators and Azure management and block legacy authentication. At production scale I would use Conditional Access in report-only mode first, with a break-glass account excluded, and PIM for just-in-time admin roles.
+- **Emergency access:** A cloud-only Global Administrator account on the .onmicrosoft.com domain, protected with Microsoft Authenticator and a synced passkey. Its credentials are kept offline and it is not used day to day. Security defaults do not allow exclusions, so MFA still applies. At production scale I would use two accounts with device-bound FIDO2 hardware keys stored separately, exclude them from Conditional Access, and alert on every sign-in.
+
+![Security defaults enabled](images/phase5-security-defaults-enabled.png)
+
+![Reader role for sg-readers on rg-hub](images/phase5-reader-role-rg-hub.png)
+
+![Role assignments on rg-prod](images/phase5-rg-prod-role-assignments.png)
+
+![Reader cannot create a resource group](images/phase5-reader-cannot-create-resource-group.png)
+
+![Storage Blob Data Reader for web-vm](images/phase5-storage-blob-data-reader-web-vm.png)
+
+![Managed identity read allowed, write denied](images/phase5-managed-identity-read-ok-write-denied.png)
+
+![Shared key access disabled](images/phase5-shared-key-access-disabled.png)
+
+![Emergency access account](images/phase5-emergency-account-overview.png)
