@@ -1,0 +1,2 @@
+Event
+| where EventLog == "Security" and EventID == 4625

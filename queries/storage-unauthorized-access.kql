@@ -1,0 +1,2 @@
+StorageBlobLogs
+| where StatusCode in (200, 404, 409) or AuthenticationType == "Anonymous"
