@@ -136,3 +136,5 @@
 ![Action group with Logic App](images/phase6-action-group-logic-app.png)
 
 ![Logic App run succeeded](images/phase6-logic-app-run-succeeded.png)
+
+## Phase 7: Security Posture
