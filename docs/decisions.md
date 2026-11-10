@@ -112,3 +112,27 @@
 ![Shared key access disabled](images/phase5-shared-key-access-disabled.png)
 
 ![Emergency access account](images/phase5-emergency-account-overview.png)
+
+## Phase 6: Monitoring and detection
+
+- **Decision:** The Azure Monitor Agent on `web-vm` sends failed logon events (Security event 4625) to a Log Analytics workspace through a data collection rule. The Azure Activity log and the Entra sign-in and audit logs go to the same workspace.
+- **Why:** One workspace gives me a single place to query and alert on identity, network and data activity.
+- **Alternative considered:** Leaving logs in each service. Rejected because I could not search or alert across them.
+- **Trade-off:** Log ingestion is billed by volume, so I collect only failed logons and not every security event.
+- **Outbound access:** The VM has no public IP, so the agent could not reach Azure Monitor until I added an outbound rule on the load balancer. At production scale I would use a NAT gateway or Azure Firewall.
+- **Alerts:** Failed logons above five in ten minutes, any role assignment change, and any storage read from a non private address. They all go to an action group that emails me and calls a Logic App.
+- **Notification:** The Logic App formats the alert and sends the email, so I can change the response later without editing each alert.
+- **Limit:** PIM activation logs need Entra ID P2, so access changes are audited through the Azure Activity log instead.
+- **Storage alert:** Blob read, write and delete logs go to the workspace, and an alert fires on any request refused with a 401 or 403 or made anonymously. With public network access disabled, most outside requests never reach storage, so this watches for attempts that get past the network layer or misuse from inside the network.
+
+![Entra logs sent to the workspace](images/phase6-diagnostic-setting-entra-logs.png)
+
+![Role assignment audit query](images/phase6-role-assignment-audit-query.png)
+
+![Failed logons query](images/phase6-failed-logons-query.png)
+
+![Logic App workflow](images/phase6-logic-app-workflow.png)
+
+![Action group with Logic App](images/phase6-action-group-logic-app.png)
+
+![Logic App run succeeded](images/phase6-logic-app-run-succeeded.png)
