@@ -1,6 +1,6 @@
 # Secure Azure Landing Zone
 
-A small Azure environment I built to practise AZ-104 skills. It has a hub and spoke network, a web server behind a load balancer, storage that can only be reached privately, and identity controls. I documented everything so anyone can follow what I did and why.
+A small Azure landing zone environment I built to help reinforce what I've picked up during prepation for my az104 certification exam. It has a hub and spoke network, a web server behind a load balancer, storage that can only be reached privately, and identity controls. I documented everything so anyone can follow what I did and why.
 
 ## The problem
 
@@ -8,7 +8,7 @@ A healthcare company needs an Azure environment that controls who has access, ke
 
 ## Architecture
 
-![Architecture diagram](docs/images/architecture.png)
+![Architecture diagram](docs/architecture.png)
 
 Visitors reach a public load balancer, which sends traffic to the web VM in the web subnet. The web VM talks to storage through a private endpoint in the data subnet. I manage the VM only through Azure Bastion, so no admin ports are open to the internet.
 
