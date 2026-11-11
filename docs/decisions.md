@@ -129,3 +129,20 @@
 ![Logic App run succeeded](images/phase6-logic-app-run-succeeded.png)
 
 ## Phase 6: Security Posture
+
+- **Decision:** Defender for Cloud reviewed the subscription and flagged 35 recommendations. I fixed four that matched the project and left the rest as a backlog.
+- **Fixed:** Email notifications for high severity alerts, Defender for Resource Manager, periodic checks for missing system updates, and an outdated OpenSSL on `web-vm`.
+- **Result:** 61% to [after]
+- **Trade-off:** Defender for Resource Manager is a paid plan. I [kept it on / turned it off after capturing evidence] to protect my credit.
+- **Not done:** The remaining recommendations, and paid plans such as Defender for Servers. At production scale I would triage them by severity and enable the plans for the VMs and storage.
+
+![Secure Score before](images/phase7-secure-score-before.png)
+
+![Mail Notifications](images/phase7-email-notifications-high-severity.png)
+
+![Defender for Resource Manager](images/phase7-defender-resource-manager-on.png)
+
+![Periodic Update Checks](images/phase7-periodic-update-assessment.png)
+
+![OpenSSL](images/phase7-openssl-agent-updated.png)
+
