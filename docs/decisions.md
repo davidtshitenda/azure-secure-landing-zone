@@ -1,13 +1,4 @@
-## Phase 1: Remote state storage
-
-- **Decision:** Terraform state lives in a separate storage account with versioning enabled.
-- **Why:** State is the source of truth for the environment. A separate account means destroying the lab does not destroy the state, and versioning lets me recover from a bad apply or a corrupted file.
-- **Alternative considered:** Local state on my laptop. Rejected because it cannot be shared with a pipeline and is lost if the machine fails.
-- **Trade-off:** One extra resource to pay for and protect, which I locked against deletion.
-
-![Blob versioning enabled](images/phase1-blob-versioning-enabled.png)
-
-## Phase 2: Hub and spoke network
+## Phase 1: Hub and spoke network
 
 - **Decision:** Hub and spoke topology. `vnet-hub` holds Azure Bastion, and `vnet-prod` is the production spoke with `snet-web` and `snet-data`. The two are connected by VNet peering.
 - **Why:** The hub centralises access, and the spoke isolates workloads. More spokes can be added later without changing the hub.
@@ -44,7 +35,7 @@
 
 ![snet-data NSG and private endpoint policy](images/phase2-snet-data-nsg-and-private-endpoint-policy.png)
 
-## Phase 3: Compute, Bastion and load balancer
+## Phase 2: Compute, Bastion and load balancer
 
 - **Decision:** A Windows Server web VM (`web-vm`) in `snet-web` with no public IP, behind a Standard public load balancer (`lbe-web-prod`). Administration is only through Azure Bastion.
 - **Why:** No public IP or open management port on the VM. The load balancer is the single public entry point and routes only to healthy instances.
@@ -65,7 +56,7 @@
 
 ![Health probe status at 100%](images/phase3-lb-health-probe-100.png)
 
-## Phase 4: Storage with private endpoint
+## Phase 3: Storage with private endpoint
 
 - **Decision:** The storage account (`strgprod2026`) has public network access disabled and is reachable only through a blob private endpoint (`pe-snet-data`) in `snet-data`. The `privatelink.blob.core.windows.net` private DNS zone is linked to both VNets.
 - **Why:** Data is unreachable from the internet. Inside the network, the storage name resolves to a private IP (`10.1.1.4`) and traffic stays on the Azure backbone.
@@ -86,7 +77,7 @@
 
 ![Outside access blocked](images/phase4-outside-access-blocked.png)
 
-## Phase 5: Identity and access
+## Phase 4: Identity and access
 
 - **Decision:** Azure roles are assigned to security groups at resource group or resource scope. `sg-readers` has Reader, `sg-cloud-admins` has Contributor on `rg-prod` with no standing members, and the web VM's managed identity has Storage Blob Data Reader on the storage account.
 - **Why:** Groups make access easy to audit and change, narrow scopes limit the blast radius, and the managed identity removes keys and connection strings.
@@ -113,7 +104,7 @@
 
 ![Emergency access account](images/phase5-emergency-account-overview.png)
 
-## Phase 6: Monitoring and detection
+## Phase 5: Monitoring and detection
 
 - **Decision:** The Azure Monitor Agent on `web-vm` sends failed logon events (Security event 4625) to a Log Analytics workspace through a data collection rule. The Azure Activity log and the Entra sign-in and audit logs go to the same workspace.
 - **Why:** One workspace gives me a single place to query and alert on identity, network and data activity.
@@ -137,4 +128,4 @@
 
 ![Logic App run succeeded](images/phase6-logic-app-run-succeeded.png)
 
-## Phase 7: Security Posture
+## Phase 6: Security Posture
