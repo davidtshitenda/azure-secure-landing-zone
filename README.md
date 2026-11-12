@@ -1,10 +1,10 @@
 # Secure Azure Landing Zone
 
-A small Azure landing zone environment I built to help reinforce what I've picked up during prepation for my az104 certification exam. It has a hub and spoke network, a web server behind a load balancer, storage that can only be reached privately, and identity controls. I documented everything so anyone can follow what I did and why.
+A small Azure landing zone I built to reinforce what I learned while preparing for the AZ-104 exam. It has a hub and spoke network, a web server behind a load balancer, storage that can only be reached privately, identity controls, monitoring with alerts and a security posture review. I documented every step so anyone can follow what I did and why.
 
 ## The problem
 
-A healthcare company needs an Azure environment that controls who has access, keeps sensitive data off the public internet, watches for unusual activity, and can be rebuilt the same way every time.
+A healthcare company needs an Azure environment that controls who has access, keeps sensitive data off the public internet, watches for unusual activity and lets the team measure its security posture.
 
 ## Architecture
 
@@ -20,8 +20,9 @@ Visitors reach a public load balancer, which sends traffic to the web VM in the 
 | Access | Azure Bastion in the hub. The VM has no public IP |
 | Web server | A Windows Server 2022 VM running IIS, behind a Standard load balancer |
 | Data | A storage account with public access turned off, a private endpoint and a private DNS zone |
-| Identity | Security groups, role assignments at resource group level, and a managed identity on the VM |
-| Monitoring | Deployed Microsoft Defender for cloud |
+| Identity | Security groups, role assignments at resource group level, a managed identity on the VM, security defaults for MFA and an emergency access account |
+| Monitoring | A Log Analytics workspace, the Azure Monitor Agent, KQL alert rules and a Logic App that sends the email |
+| Posture | A Defender for Cloud review with four recommendations fixed, taking the Secure Score from 61% to 76% |
 
 ## Why I made these choices
 
@@ -46,7 +47,9 @@ The full reasoning and screenshots are in [docs/decisions.md](docs/decisions.md)
 - No VM has a public IP.
 - Storage has public network access off, anonymous access off and a minimum of TLS 1.2.
 - Access goes to groups, with the smallest role that does the job.
-- Add monitoring and alert rules here if you finished them.
+- Failed logons, role assignment changes and unauthorised storage requests raise alerts that email me through a Logic App.
+- Security defaults require MFA, and the emergency access account keeps its credentials offline.
+- Defender for Cloud flagged an outdated OpenSSL bundled with the Azure Monitor Agent. I updated the agent and turned on automatic updates.
 
 ## What I would change for production
 
@@ -56,19 +59,22 @@ The full reasoning and screenshots are in [docs/decisions.md](docs/decisions.md)
 - Diagnostic logs on every resource, sent to one workspace, with Microsoft Sentinel on top
 - PIM and Conditional Access with MFA
 - Zone redundant VMs and separate subscriptions for production and testing
+- Terraform or Bicep with a GitHub Actions pipeline, so the whole environment can be rebuilt from code and every change is reviewed and approved first
+- Patch windows and at least two VMs behind the load balancer, so patching does not take the site offline
 
 ## Limits of this lab
 
-- PIM and Conditional Access need Entra ID P2 and P1 licences. My tenant did not have them after the trial ended, so I documented the design but did not build it.
+- PIM and Conditional Access need paid Entra ID licences, P2 for PIM and P1 for Conditional Access. My tenant did not have them after the trial ended, so I wrote down how I would set them up but did not build them.
 - It uses plain HTTP and one VM to keep the cost down.
+- I built everything by hand in the portal, so rebuilding it depends on the steps in docs/decisions.md.
 
 ## How to deploy
 
-To implement this lab again I've detailed all the steps in decisions.md and all the kql and scripts can be found in the accompanying folders (i.e. scripts/ & queries/).
+If you want to build this again, the steps are in docs/decisions.md, the KQL queries are in the queries folder and the web server script is in the scripts folder.
 
 ## Cost and clean up
 
-The load balancer, Bastion, VM and private endpoint are billed by the hour. When I am not using them I stop the VM and delete Bastion. To remove everything, delete the resource groups rg-prod and rg-hub. Keep rg-tfstate if you use remote state.
+The load balancer, Bastion, VM and private endpoint are billed by the hour. When I am not using them I stop the VM and delete Bastion. To remove everything, delete the resource groups rg-prod and rg-hub.
 
 ## About me
 
