@@ -21,8 +21,7 @@ Visitors reach a public load balancer, which sends traffic to the web VM in the 
 | Web server | A Windows Server 2022 VM running IIS, behind a Standard load balancer |
 | Data | A storage account with public access turned off, a private endpoint and a private DNS zone |
 | Identity | Security groups, role assignments at resource group level, and a managed identity on the VM |
-| Monitoring | Add this row if you finished it |
-| Automation | Add this row if you finished it |
+| Monitoring | Deployed Microsoft Defender for cloud |
 
 ## Why I made these choices
 
@@ -65,7 +64,7 @@ The full reasoning and screenshots are in [docs/decisions.md](docs/decisions.md)
 
 ## How to deploy
 
-Describe how someone could rebuild it. If you finished Terraform, list the steps to run it. If you built it by hand, say so and point to docs/decisions.md for the steps and scripts/install-iis.ps1 for the web server install.
+To implement this lab again I've detailed all the steps in decisions.md and all the kql and scripts can be found in the accompanying folders (i.e. scripts/ & queries/).
 
 ## Cost and clean up
 
